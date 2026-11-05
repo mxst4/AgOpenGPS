@@ -80,7 +80,7 @@ namespace AgOpenGPS.Core.FarmTelemetry
                             catch (FormatException) { }
                             return new FarmTelemetryResult(false, false, "Farm returned an invalid snapshot acknowledgement.");
                         }
-                        return new FarmTelemetryResult(false, status == 413, ErrorMessage(status, responseBody));
+                        return new FarmTelemetryResult(false, status == 413, ErrorMessage(status));
                     }
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -96,33 +96,12 @@ namespace AgOpenGPS.Core.FarmTelemetry
             return new FarmTelemetryResult(false, false, "Farm sync failed.");
         }
 
-        private static string ErrorMessage(int status, string responseBody)
+        private static string ErrorMessage(int status)
         {
             if (status == 401 || status == 403) return "Farm rejected access. Check the shared key and source terminal assignment.";
             if (status == 413) return "Snapshot too large; next sync will send metadata without geometry.";
-            if (status == 409)
-            {
-                try
-                {
-                    if ((string)JObject.Parse(responseBody)["code"] == "TELEMETRY_SOURCE_UNASSIGNED")
-                        return "Register this telemetry ID and assign it to a tractor in Farm → AgOpenGPS.";
-                }
-                catch (JsonException) { }
-                return "Farm rejected the snapshot identity (409). Check telemetry ID and tablet clock.";
-            }
-            if (status == 400 || status == 422)
-            {
-                try
-                {
-                    var error = JObject.Parse(responseBody);
-                    string field = (string)error["field"];
-                    string code = (string)error["code"];
-                    if (field != null && field.Length <= 120 && code != null && code.Length <= 80 &&
-                        System.Text.RegularExpressions.Regex.IsMatch(field + code, @"\A[a-zA-Z0-9_\.\[\]]+\z"))
-                        return "Farm rejected " + field + " (" + code + "). Check the saved field data and tablet clock.";
-                }
-                catch (JsonException) { }
-            }
+            if (status == 409) return "Farm rejected the snapshot. Check source registration, tractor assignment, telemetry ID and tablet clock.";
+            if (status == 400 || status == 422) return "Farm rejected the snapshot data. Check saved field data and tablet clock.";
             return "Farm sync HTTP " + status + ". Check source configuration and saved field data.";
         }
 

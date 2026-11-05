@@ -51,6 +51,7 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
                 Assert.That(result.Successful, Is.False);
                 Assert.That(result.TooLarge, Is.EqualTo(status == 413));
                 Assert.That(handler.Bodies, Has.Count.EqualTo(1));
+                if (status == 409) Assert.That(result.Message, Does.Contain("tractor assignment"));
             }
         }
 
