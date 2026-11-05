@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using AgOpenGPS.Core.Models;
+using AgOpenGPS.Core.FarmTelemetry;
 
 namespace AgOpenGPS.IO
 {
@@ -57,6 +58,11 @@ namespace AgOpenGPS.IO
         /// Stateless: no UI, no globals, only file IO.
         /// </summary>
         public static void Save(string fieldDirectory, DateTime timestamp, Wgs84 startFix)
+        {
+            AgShareFieldIdentity.Write(fieldDirectory, () => SaveOrigin(fieldDirectory, timestamp, startFix));
+        }
+
+        private static void SaveOrigin(string fieldDirectory, DateTime timestamp, Wgs84 startFix)
         {
             var path = Path.Combine(fieldDirectory, "Field.txt");
             using (var writer = new StreamWriter(path, false))

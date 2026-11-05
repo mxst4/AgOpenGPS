@@ -249,6 +249,13 @@ namespace AgOpenGPS
 
         private void btnBuildFields_Click(object sender, EventArgs e)
         {
+            mf.BeginFarmFieldTransition();
+            try { BuildField(); }
+            finally { mf.EndFarmFieldTransition(); }
+        }
+
+        private void BuildField()
+        {
             mf.currentFieldDirectory = tboxFieldName.Text.Trim();
             string directoryPath = Path.Combine(RegistrySettings.fieldsDirectory, mf.currentFieldDirectory);
 
@@ -309,6 +316,7 @@ namespace AgOpenGPS
                 mf.bnd.bndList.Count > 0 && mf.bnd.bndList[0].hdLine.Count > 0
             );
 
+            mf.CompleteFarmFieldOpen();
             DialogResult = DialogResult.OK;
             Close();
         }

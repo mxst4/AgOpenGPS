@@ -432,6 +432,7 @@ namespace AgOpenGPS
 
         public void LoadSettings()
         {
+            RefreshFarmSyncSettings();
             btnChangeMappingColor.Text = Program.Version;
 
             //metric settings

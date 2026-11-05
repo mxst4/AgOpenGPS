@@ -68,6 +68,9 @@ namespace AgOpenGPS
                             double Lon = BitConverter.ToDouble(data, 5);
                             double Lat = BitConverter.ToDouble(data, 13);
 
+                            _farmPosition.Observe(new Wgs84(Lat, Lon), DateTime.UtcNow,
+                                data[43] > 0 && data[43] != byte.MaxValue, false);
+
                             if (Lon != double.MaxValue && Lat != double.MaxValue)
                             {
                                 if (timerSim.Enabled) DisableSim();

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "telemetryId": "a6c11b11-670d-4d2f-92d2-9ac81d4a7202",
+  "snapshotId": "b13854e7-44e6-44ef-8d86-910416dc8232",
+  "capturedAtUtc": "2026-11-05T12:00:00Z",
+  "appVersion": "fork-build-example",
+  "syncIntervalSeconds": 300,
+  "simulator": false,
+  "position": {
+    "longitude": 20.0,
+    "latitude": 52.0,
+    "observedAtUtc": "2026-11-05T11:59:59Z"
+  },
+  "implement": {
+    "name": "Talerzowka",
+    "widthMeters": 3.2
+  },
+  "fieldStatus": "OPEN",
+  "field": {
+    "agShareId": "85e5d9d8-ec18-492b-94d6-74ce0f002aaa",
+    "name": "Pole polnocne",
+    "origin": [
+      20.0,
+      52.0
+    ],
+    "boundary": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            20.0,
+            52.0
+          ],
+          [
+            20.001,
+            52.0
+          ],
+          [
+            20.001,
+            52.001
+          ],
+          [
+            20.0,
+            52.001
+          ],
+          [
+            20.0,
+            52.0
+          ]
+        ]
+      ]
+    }
+  },
+  "coverage": {
+    "status": "READY",
+    "readAtUtc": "2026-11-05T12:00:01Z",
+    "fileModifiedAtUtc": "2026-11-05T11:59:40Z",
+    "trailingBlockDeferred": false,
+    "triangleStrips": [
+      [
+        [
+          20.0001,
+          52.0001
+        ],
+        [
+          20.00014,
+          52.0001
+        ],
+        [
+          20.0001,
+          52.0003
+        ],
+        [
+          20.00014,
+          52.0003
+        ]
+      ]
+    ]
+  }
+}

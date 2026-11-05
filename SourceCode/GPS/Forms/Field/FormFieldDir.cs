@@ -72,6 +72,13 @@ namespace AgOpenGPS
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            mf.BeginFarmFieldTransition();
+            try { CreateField(); }
+            finally { mf.EndFarmFieldTransition(); }
+        }
+
+        private void CreateField()
+        {
             //fill something in
             if (String.IsNullOrEmpty(tboxFieldName.Text.Trim()))
             {
@@ -112,6 +119,7 @@ namespace AgOpenGPS
                     mf.FileCreateElevation();
                     mf.FileSaveFlags();
                     mf.FileCreateBoundary();
+                    mf.CompleteFarmFieldOpen();
                     //mf.FileSaveABLine();
                     //mf.FileSaveCurveLine();
                     //mf.FileSaveHeadland();

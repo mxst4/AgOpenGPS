@@ -640,6 +640,13 @@ namespace AgOpenGPS
 
         public async Task FileSaveEverythingBeforeClosingField()
         {
+            BeginFarmFieldTransition();
+            try { await SaveFarmFieldBeforeClosing(); }
+            finally { EndFarmFieldTransition(); }
+        }
+
+        private async Task SaveFarmFieldBeforeClosing()
+        {
             // Easy Drive mode: skip all saves, just close
             if (isEasyDriveMode)
             {

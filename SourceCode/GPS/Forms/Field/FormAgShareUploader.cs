@@ -1,3 +1,4 @@
+using AgOpenGPS.Core.FarmTelemetry;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -149,7 +150,7 @@ namespace AgOpenGPS.Forms
                             {
                                 try
                                 {
-                                    string raw = File.ReadAllText(idPath).Trim();
+                                    string raw = AgShareFieldIdentity.Read(fieldInfo.DirectoryPath, () => File.ReadAllText(idPath).Trim());
                                     Guid localId = Guid.Parse(raw);
 
                                     // Check if this ID exists in current user's cloud fields
@@ -334,85 +335,23 @@ namespace AgOpenGPS.Forms
 
         private async Task UploadField(FieldInfo fieldInfo)
         {
-            // Load field data from directory
+            bool hadIdentity = AgShareFieldIdentity.Read(fieldInfo.DirectoryPath,
+                () => File.Exists(Path.Combine(fieldInfo.DirectoryPath, "agshare.txt")));
             var snapshot = await LoadFieldSnapshot(fieldInfo);
+            if (snapshot == null) throw new Exception("Failed to load field data");
 
-            if (snapshot == null)
+            Guid? cloudId = fieldInfo.CloudFieldId;
+            if (!cloudId.HasValue && !hadIdentity)
+                cloudId = await FindFieldByNameOnCloud(snapshot.FieldName);
+            if (cloudId.HasValue && cloudId.Value != snapshot.FieldId)
             {
-                throw new Exception("Failed to load field data");
+                DuplicateNameChoice choice = hadIdentity
+                    ? AskDifferentCloudIdChoice(snapshot.FieldName)
+                    : AskDuplicateNameChoice(snapshot.FieldName);
+                if (choice == DuplicateNameChoice.Cancel) throw new Exception("Upload cancelled by user");
+                snapshot.FieldId = choice == DuplicateNameChoice.Overwrite ? cloudId.Value : Guid.NewGuid();
+                AgShareFieldIdentity.Replace(fieldInfo.DirectoryPath, snapshot.FieldId);
             }
-
-            string idPath = Path.Combine(fieldInfo.DirectoryPath, "agshare.txt");
-
-            // Scenario: Cloud ID was found via name check, but local agshare.txt has different ID
-            if (fieldInfo.CloudFieldId.HasValue && File.Exists(idPath))
-            {
-                try
-                {
-                    string raw = File.ReadAllText(idPath).Trim();
-                    Guid localId = Guid.Parse(raw);
-
-                    // If cloud ID (from name match) is different from local ID, ask user
-                    if (localId != fieldInfo.CloudFieldId.Value)
-                    {
-                        DuplicateNameChoice choice = AskDifferentCloudIdChoice(snapshot.FieldName);
-
-                        if (choice == DuplicateNameChoice.Cancel)
-                        {
-                            throw new Exception("Upload cancelled by user");
-                        }
-                        else if (choice == DuplicateNameChoice.Overwrite)
-                        {
-                            // Overwrite: Use cloud ID (overwrite cloud field with this ID)
-                            snapshot.FieldId = fieldInfo.CloudFieldId.Value;
-                            File.WriteAllText(idPath, fieldInfo.CloudFieldId.Value.ToString());
-                        }
-                        // else: CreateNew - generate new ID (already done in LoadFieldSnapshot)
-                    }
-                    else
-                    {
-                        // IDs match - use cloud ID
-                        snapshot.FieldId = fieldInfo.CloudFieldId.Value;
-                    }
-                }
-                catch
-                {
-                    // Invalid agshare.txt, use cloud ID
-                    snapshot.FieldId = fieldInfo.CloudFieldId.Value;
-                    File.WriteAllText(idPath, fieldInfo.CloudFieldId.Value.ToString());
-                }
-            }
-            // Scenario: Cloud ID found via name check, no local agshare.txt
-            else if (fieldInfo.CloudFieldId.HasValue)
-            {
-                snapshot.FieldId = fieldInfo.CloudFieldId.Value;
-                File.WriteAllText(idPath, fieldInfo.CloudFieldId.Value.ToString());
-            }
-            // Scenario: No cloud ID found during initial check, no local agshare.txt
-            else if (!File.Exists(idPath))
-            {
-                // Check if field with same name exists on cloud (might have been added since initial check)
-                var existingFieldId = await FindFieldByNameOnCloud(snapshot.FieldName);
-                if (existingFieldId.HasValue)
-                {
-                    // Ask user what to do
-                    DuplicateNameChoice choice = AskDuplicateNameChoice(snapshot.FieldName);
-
-                    if (choice == DuplicateNameChoice.Cancel)
-                    {
-                        throw new Exception("Upload cancelled by user");
-                    }
-                    else if (choice == DuplicateNameChoice.Overwrite)
-                    {
-                        // Use existing cloud ID and save it locally
-                        snapshot.FieldId = existingFieldId.Value;
-                        File.WriteAllText(idPath, existingFieldId.Value.ToString());
-                    }
-                    // else: CreateNew - keep the new GUID that was already created
-                }
-            }
-
-            // Use existing upload logic
             await uploader.UploadAsync(snapshot, null);
         }
 
@@ -506,18 +445,7 @@ namespace AgOpenGPS.Forms
                     // Load tracks from TrackLines.txt
                     List<CTrk> tracks = TrackFiles.Load(fieldInfo.DirectoryPath);
 
-                    // Get or create field ID
-                    Guid fieldId;
-                    string idPath = Path.Combine(fieldInfo.DirectoryPath, "agshare.txt");
-                    if (File.Exists(idPath))
-                    {
-                        string raw = File.ReadAllText(idPath).Trim();
-                        fieldId = Guid.Parse(raw);
-                    }
-                    else
-                    {
-                        fieldId = Guid.NewGuid();
-                    }
+                    Guid fieldId = AgShareFieldIdentity.GetOrCreate(fieldInfo.DirectoryPath);
 
                     // Create LocalPlane with the field's own origin
                     LocalPlane plane = new LocalPlane(origin, new SharedFieldProperties());

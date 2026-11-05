@@ -1,0 +1,381 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "telemetryId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "snapshotId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "capturedAtUtc": {
+      "$ref": "#/$defs/time"
+    },
+    "appVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "\\S"
+    },
+    "syncIntervalSeconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 3600
+    },
+    "simulator": {
+      "type": "boolean"
+    },
+    "position": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/position"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "implement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/implement"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fieldStatus": {
+      "enum": [
+        "OPEN",
+        "CLOSED",
+        "LOADING"
+      ]
+    },
+    "field": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/field"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/coverage"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "telemetryId",
+    "snapshotId",
+    "capturedAtUtc",
+    "appVersion",
+    "syncIntervalSeconds",
+    "simulator",
+    "position",
+    "implement",
+    "fieldStatus",
+    "field",
+    "coverage"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed Farm telemetry snapshot v1",
+  "$comment": "Design fixture. Cross-field timestamp order, ring closure, even strip vertex counts, total vertices and byte limits require semantic validation described in telemetry-contract.md.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "fieldStatus": {
+            "const": "OPEN"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "field": {
+            "$ref": "#/$defs/field"
+          },
+          "coverage": {
+            "$ref": "#/$defs/coverage"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "field": {
+            "type": "null"
+          },
+          "coverage": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ring": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/point"
+      },
+      "minItems": 4,
+      "maxItems": 20000
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "Polygon"
+        },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ring"
+          },
+          "minItems": 1,
+          "maxItems": 5000
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ]
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "observedAtUtc": {
+          "$ref": "#/$defs/time"
+        }
+      },
+      "required": [
+        "longitude",
+        "latitude",
+        "observedAtUtc"
+      ]
+    },
+    "implement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "\\S"
+        },
+        "widthMeters": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "widthMeters"
+      ]
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "agShareId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "\\S"
+        },
+        "origin": {
+          "$ref": "#/$defs/point"
+        },
+        "boundary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/boundary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "agShareId",
+        "name",
+        "origin",
+        "boundary"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "coverage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "READY"
+            },
+            "readAtUtc": {
+              "$ref": "#/$defs/time"
+            },
+            "fileModifiedAtUtc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "trailingBlockDeferred": {
+              "type": "boolean"
+            },
+            "triangleStrips": {
+              "type": "array",
+              "maxItems": 50000,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 200000,
+                "items": {
+                  "$ref": "#/$defs/point"
+                }
+              }
+            }
+          },
+          "required": [
+            "status",
+            "readAtUtc",
+            "fileModifiedAtUtc",
+            "trailingBlockDeferred",
+            "triangleStrips"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "trailingBlockDeferred": {
+                    "const": true
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "triangleStrips": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "UNAVAILABLE"
+            },
+            "readAtUtc": {
+              "$ref": "#/$defs/time"
+            },
+            "reason": {
+              "enum": [
+                "FILE_MISSING",
+                "FILE_UNREADABLE",
+                "INCOMPLETE_READ",
+                "ORIGIN_CHANGED",
+                "INVALID_DATA"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "readAtUtc",
+            "reason"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "TOO_LARGE"
+            },
+            "readAtUtc": {
+              "$ref": "#/$defs/time"
+            },
+            "reason": {
+              "const": "LIMIT_EXCEEDED"
+            }
+          },
+          "required": [
+            "status",
+            "readAtUtc",
+            "reason"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -56,6 +56,26 @@ namespace AgOpenGPS
 
             // Disable TextboxServer for now until it's released
             textBoxServer.Enabled = true;
+            AddFarmSyncButton();
+        }
+
+
+        private void AddFarmSyncButton()
+        {
+            var button = new Button
+            {
+                Text = "Farm sync",
+                Location = new Point(442, 172),
+                Size = new Size(146, 128),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Tahoma", 14F, FontStyle.Bold)
+            };
+            button.Click += (sender, args) =>
+            {
+                if (Owner is FormGPS gps)
+                    using (var form = new FormFarmSyncSettings(gps)) form.ShowDialog(this);
+            };
+            Controls.Add(button);
         }
 
         // Dispose timer when form closes
@@ -126,6 +146,7 @@ namespace AgOpenGPS
             Settings.Default.AgShareServer = textBoxServer.Text;
             Settings.Default.AgShareApiKey = textBoxApiKey.Text;
             Settings.Default.Save();
+            (Owner as FormGPS)?.RefreshFarmSyncSettings();
 
             labelStatus.Text = "✔ " + gStr.gsAgShareSaved;
             labelStatus.ForeColor = Color.Blue;

@@ -38,6 +38,7 @@ namespace AgOpenGPS
 
         public void DefineLocalPlane(Wgs84 origin, bool setSim)
         {
+            mf.InvalidateFarmFieldCapture();
             mf.AppModel.LocalPlane = new LocalPlane(origin, mf.AppModel.SharedFieldProperties);
             if (setSim && mf.timerSim.Enabled)
             {

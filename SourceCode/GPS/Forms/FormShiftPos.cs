@@ -90,6 +90,7 @@ namespace AgOpenGPS
 
         private void SetFixDelta()
         {
+            mf.InvalidateFarmFieldCapture();
             mf.AppModel.SharedFieldProperties.DriftCompensation =
                 new GeoDelta((double)nudNorth.Value / 100, (double)nudEast.Value / 100);
         }

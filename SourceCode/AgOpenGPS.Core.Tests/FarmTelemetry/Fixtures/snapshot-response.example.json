@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "telemetryId": "a6c11b11-670d-4d2f-92d2-9ac81d4a7201",
+  "snapshotId": "c2cc8cc4-e110-44d0-a53d-c896868c029a",
+  "status": "ACCEPTED",
+  "receivedAtUtc": "2026-11-05T12:00:02Z",
+  "terminalId": 7,
+  "tractorId": 12,
+  "implementId": 31,
+  "farmFieldId": 18,
+  "fieldImportStatus": "LINKED",
+  "coverageDisposition": "REPLACED"
+}

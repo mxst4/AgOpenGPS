@@ -323,6 +323,9 @@ namespace AgOpenGPS
 
             AddHeader(right, "── AgShare");
             AddRow(right, "AgShare Enabled", esDefault.AgShareEnabled, es.AgShareEnabled);
+            AddRow(right, "Farm Sync Enabled", esDefault.FarmSyncEnabled, es.FarmSyncEnabled);
+            AddRow(right, "Farm Sync Interval (s)", esDefault.FarmSyncIntervalSeconds, es.FarmSyncIntervalSeconds);
+            AddRow(right, "Farm Telemetry ID", esDefault.FarmTelemetryId, es.FarmTelemetryId);
             AddRow(right, "Upload Active", esDefault.AgShareUploadActive, es.AgShareUploadActive);
             AddRow(right, "Public Field", esDefault.PublicField, es.PublicField);
 

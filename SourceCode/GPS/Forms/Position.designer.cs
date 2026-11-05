@@ -130,6 +130,7 @@ namespace AgOpenGPS
 
         public void UpdateFixPosition()
         {
+            if (timerSim.Enabled) _farmPosition.Observe(AppModel.CurrentLatLon, DateTime.UtcNow, true, true);
             //Measure the frequency of the GPS updates
             timeSliceOfLastFix = (double)(swFrame.ElapsedTicks) / (double)System.Diagnostics.Stopwatch.Frequency;
 
@@ -798,6 +799,7 @@ namespace AgOpenGPS
 
             #region Corrected Position
             Wgs84 latLon = AppModel.LocalPlane.ConvertGeoCoordToWgs84(pn.fix.ToGeoCoord());
+            _farmPosition.Correct(latLon);
             byte[] correctedPosition = new byte[30];
             correctedPosition[0] = 0x80;
             correctedPosition[1] = 0x81;
