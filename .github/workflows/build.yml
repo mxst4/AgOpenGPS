@@ -48,7 +48,19 @@ jobs:
       run: dotnet build --no-restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Test
-      run: dotnet test --no-restore --no-build ${{env.SOLUTION_FILE_PATH}}
+      timeout-minutes: 5
+      run: >-
+        dotnet test --no-restore --no-build ${{env.SOLUTION_FILE_PATH}}
+        --logger "console;verbosity=detailed" --logger trx
+        --results-directory "${{github.workspace}}/TestResults"
+        --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestResults
+        path: TestResults
 
     - name: Publish
       run: dotnet publish --no-restore --configuration ${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}

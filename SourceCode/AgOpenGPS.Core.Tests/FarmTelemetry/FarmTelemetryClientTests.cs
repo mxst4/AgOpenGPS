@@ -77,7 +77,7 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
         public async Task CancellationStopsDisconnectedRequestWithoutRetry()
         {
             var snapshot = Snapshot();
-            var entered = new TaskCompletionSource<bool>();
+            var entered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var handler = new StubHandler(async (request, attempt, token) =>
             {
                 entered.SetResult(true);
@@ -88,10 +88,10 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
             using (var cancellation = new CancellationTokenSource())
             {
                 var sending = client.SendAsync(FarmTelemetryJson.Serialize(snapshot), snapshot.TelemetryId, snapshot.SnapshotId, () => true, cancellation.Token);
-                await entered.Task;
+                await CompleteWithinTimeout(entered.Task);
                 Assert.That(sending.IsCompleted, Is.False);
                 cancellation.Cancel();
-                Assert.CatchAsync<OperationCanceledException>(async () => await sending);
+                await Assert.ThatAsync(async () => await CompleteWithinTimeout(sending), Throws.InstanceOf<OperationCanceledException>());
                 Assert.That(handler.Bodies, Has.Count.EqualTo(1));
             }
         }
@@ -100,7 +100,7 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
         public async Task SettingsReplacementCancelsOldRetryThenUsesFreshHostKeyAndIdentity()
         {
             var oldSnapshot = Snapshot();
-            var firstResponse = new TaskCompletionSource<bool>();
+            var firstResponse = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var oldHandler = new StubHandler((request, attempt, token) =>
             {
                 firstResponse.TrySetResult(true);
@@ -111,10 +111,10 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
             {
                 var oldSending = oldClient.SendAsync(FarmTelemetryJson.Serialize(oldSnapshot), oldSnapshot.TelemetryId,
                     oldSnapshot.SnapshotId, () => true, cancellation.Token);
-                await firstResponse.Task;
+                await CompleteWithinTimeout(firstResponse.Task);
                 cancellation.Cancel();
                 oldClient.Dispose();
-                Assert.CatchAsync<OperationCanceledException>(async () => await oldSending);
+                await Assert.ThatAsync(async () => await CompleteWithinTimeout(oldSending), Throws.InstanceOf<OperationCanceledException>());
                 Assert.That(oldHandler.Bodies, Has.Count.EqualTo(1));
 
                 var fresh = Snapshot();
@@ -196,6 +196,13 @@ namespace AgOpenGPS.Core.Tests.FarmTelemetry
             Assert.That((string)json["coverage"]["status"], Is.EqualTo("TOO_LARGE"));
             Assert.That(json["field"]["boundary"].Type, Is.EqualTo(JTokenType.Null));
             Assert.That(json["coverage"]["triangleStrips"], Is.Null);
+        }
+
+        private static async Task CompleteWithinTimeout(Task task)
+        {
+            Assert.That(await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5))), Is.SameAs(task),
+                "The asynchronous test operation did not complete within five seconds.");
+            await task;
         }
 
         private static FarmSnapshot Snapshot() => new FarmSnapshot(Guid.NewGuid(), Guid.NewGuid(), Now, "test-build", 300, false,
