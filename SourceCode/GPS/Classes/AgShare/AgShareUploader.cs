@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgLibrary.Logging;
 using AgOpenGPS.Core.AgShare;
+using AgOpenGPS.Core.FarmTelemetry;
 using AgOpenGPS.Core.AgShare.Models;
 using AgOpenGPS.Core.Models;
 
@@ -26,18 +27,7 @@ namespace AgOpenGPS
         public static FieldSnapshot CreateSnapshot(FormGPS gps)
         {
             string dir = Path.Combine(RegistrySettings.fieldsDirectory, gps.currentFieldDirectory);
-            string idPath = Path.Combine(dir, "agshare.txt");
-
-            Guid fieldId;
-            if (File.Exists(idPath))
-            {
-                string raw = File.ReadAllText(idPath).Trim();
-                fieldId = Guid.Parse(raw);
-            }
-            else
-            {
-                fieldId = Guid.NewGuid();
-            }
+            Guid fieldId = AgShareFieldIdentity.GetOrCreate(dir);
 
             List<List<vec3>> boundaries = new List<List<vec3>>();
             foreach (var b in gps.bnd.bndList)
@@ -128,8 +118,6 @@ namespace AgOpenGPS
 
                 if (result.IsSuccessful)
                 {
-                    string txtPath = Path.Combine(snapshot.FieldDirectory, "agshare.txt");
-                    File.WriteAllText(txtPath, snapshot.FieldId.ToString());
                     Log.EventWriter("Field uploaded to AgShare: " + snapshot.FieldName + " (" + snapshot.FieldId + ")");
                 }
             }

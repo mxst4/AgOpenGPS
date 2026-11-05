@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/FarmTelemetry/*.cs" Link="Production/%(Filename)%(Extension)" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/LocalPlane.cs" Link="Production/LocalPlane.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/Wgs84.cs" Link="Production/Wgs84.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/GeoCoord.cs" Link="Production/GeoCoord.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/GeoDelta.cs" Link="Production/GeoDelta.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/GeoArea.cs" Link="Production/GeoArea.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Base/Units.cs" Link="Production/Units.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core/Models/Field/SharedFieldProperties.cs" Link="Production/SharedFieldProperties.cs" />
+    <Compile Include="../../SourceCode/AgOpenGPS.Core.Tests/FarmTelemetry/*.cs" Link="Tests/%(Filename)%(Extension)" />
+    <None Include="../../SourceCode/AgOpenGPS.Core.Tests/FarmTelemetry/Fixtures/*" Link="FarmTelemetry/Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

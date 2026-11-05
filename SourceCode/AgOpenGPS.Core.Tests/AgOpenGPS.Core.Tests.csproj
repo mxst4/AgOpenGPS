@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AgOpenGPS.Core\AgOpenGPS.Core.csproj" />
+    <Reference Include="System.Net.Http" />
+    <None Update="FarmTelemetry\Fixtures\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

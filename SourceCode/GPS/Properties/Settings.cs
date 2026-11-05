@@ -149,6 +149,9 @@ namespace AgOpenGPS.Properties
         public bool AgShareEnabled = false;
         public bool AgShareUploadActive = false;
         public bool AgShareAutoLoad = false;
+        public bool FarmSyncEnabled = false;
+        public int FarmSyncIntervalSeconds = 300;
+        public string FarmTelemetryId = "";
 
         // ===== UDP SETTINGS =====
         public int SetGPS_udpWatchMsec = 50;
@@ -352,7 +355,7 @@ namespace AgOpenGPS.Properties
 
         public void Reset()
         {
-            settings_ = new Settings();
+            settings_ = new Settings { FarmTelemetryId = FarmTelemetryId };
             settings_.Save();
         }
     }

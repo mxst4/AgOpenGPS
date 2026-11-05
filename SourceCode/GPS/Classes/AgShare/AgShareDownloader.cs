@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgLibrary.Logging;
 using AgOpenGPS.Classes.AgShare.Helpers;
 using AgOpenGPS.Core.AgShare;
+using AgOpenGPS.Core.FarmTelemetry;
 using AgOpenGPS.Core.AgShare.Models;
 using AgOpenGPS.IO;
 
@@ -123,7 +124,7 @@ namespace AgOpenGPS
                     {
                         try
                         {
-                            var id = File.ReadAllText(agsharePath).Trim();
+                            var id = AgShareFieldIdentity.Read(dir, () => File.ReadAllText(agsharePath).Trim());
                             alreadyExists = Guid.TryParse(id, out Guid guid) && guid == field.Id;
                         }
                         catch { }
@@ -189,10 +190,15 @@ namespace AgOpenGPS
         // Writes all files required for a field using static IO classes
         public static void WriteAllFiles(ParsedField field, string fieldDir)
         {
+            AgShareFieldIdentity.Write(fieldDir, () => WriteFiles(field, fieldDir));
+        }
+
+        private static void WriteFiles(ParsedField field, string fieldDir)
+        {
             if (!Directory.Exists(fieldDir))
                 Directory.CreateDirectory(fieldDir);
 
-            File.WriteAllText(Path.Combine(fieldDir, "agshare.txt"), field.FieldId.ToString());
+            AgShareFieldIdentity.Replace(fieldDir, field.FieldId);
             FieldPlaneFiles.Save(fieldDir, DateTime.Now, field.Origin);
             BoundaryFiles.Save(fieldDir, field.Boundaries);
             TrackFiles.Save(fieldDir, field.Tracks);

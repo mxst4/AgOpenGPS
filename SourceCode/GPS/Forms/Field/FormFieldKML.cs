@@ -67,17 +67,18 @@ namespace AgOpenGPS
 
         private async void btnSave_Click(object sender, EventArgs e)
         {
-            if (mf.isJobStarted)
-                await mf.FileSaveEverythingBeforeClosingField();
+            mf.BeginFarmFieldTransition();
+            try
+            {
+                if (mf.isJobStarted)
+                    await mf.FileSaveEverythingBeforeClosingField();
 
-            //reset sim and world to kml position
-            CreateNewField();
-
-            //Load the outer boundary
-            LoadKMLBoundary(fileName, true);
-
-            DialogResult = DialogResult.OK;
-            Close();
+                if (!CreateNewField() || !LoadKMLBoundary(fileName, true)) return;
+                mf.CompleteFarmFieldOpen();
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            finally { mf.EndFarmFieldTransition(); }
         }
 
         private void tboxFieldName_Click(object sender, EventArgs e)
@@ -127,10 +128,11 @@ namespace AgOpenGPS
             tboxFieldName.Text += " " + DateTime.Now.ToString("HH-mm", CultureInfo.InvariantCulture);
         }
 
-        private void LoadKMLBoundary(string filename, bool fieldCreated)
+        private bool LoadKMLBoundary(string filename, bool fieldCreated)
         {
             string coordinates = null;
             int startIndex;
+            bool loaded = false;
 
             using (System.IO.StreamReader reader = new System.IO.StreamReader(filename))
             {
@@ -197,16 +199,19 @@ namespace AgOpenGPS
                                     mf.btnABDraw.Visible = true;
                                 }
 
+                                loaded = true;
                                 coordinates = "";
                             }
                             else
                             {
                                 FormDialog.Show(gStr.gsErrorreadingKML, gStr.gsChooseBuildDifferentone, DialogSeverity.Error);
                                 Log.EventWriter("New Field, Error Reading KML");
+                                return false;
                             }
                             break;
                         }
                     }
+                    if (!loaded) return false;
                     if (fieldCreated)
                     {
                         mf.FileSaveBoundary();
@@ -224,11 +229,12 @@ namespace AgOpenGPS
                     btnLoadKML.Enabled = false;
                     FormDialog.Show(gStr.gsErrorreadingKML, gStr.gsChooseBuildDifferentone, DialogSeverity.Error);
                     Log.EventWriter("New Field, Error Reading KML" + ee.ToString());
-                    return;
+                    return false;
                 }
             }
 
             mf.bnd.isOkToAddPoints = false;
+            return true;
         }
 
         private void FindLatLon(string filename)
@@ -319,13 +325,13 @@ namespace AgOpenGPS
             mf.bnd.isOkToAddPoints = false;
         }
 
-        private void CreateNewField()
+        private bool CreateNewField()
         {
             //fill something in
             if (String.IsNullOrEmpty(tboxFieldName.Text.Trim()))
             {
                 Close();
-                return;
+                return false;
             }
 
             //append date time to name
@@ -345,7 +351,7 @@ namespace AgOpenGPS
                 if ((!string.IsNullOrEmpty(directoryName)) && (Directory.Exists(directoryName)))
                 {
                     FormDialog.Show(gStr.gsChooseADifferentName, gStr.gsDirectoryExists, DialogSeverity.Error);
-                    return;
+                    return false;
                 }
                 else
                 {
@@ -359,7 +365,7 @@ namespace AgOpenGPS
                     if (!mf.isJobStarted)
                     {
                         FormDialog.Show(gStr.gsFieldNotOpen, gStr.gsCreateNewField, DialogSeverity.Error);
-                        return;
+                        return false;
                     }
                     string myFileName;
 
@@ -408,7 +414,9 @@ namespace AgOpenGPS
 
                 FormDialog.Show(gStr.gsError, ex.ToString(), DialogSeverity.Error);
                 mf.currentFieldDirectory = "";
+                return false;
             }
+            return true;
         }
     }
 }

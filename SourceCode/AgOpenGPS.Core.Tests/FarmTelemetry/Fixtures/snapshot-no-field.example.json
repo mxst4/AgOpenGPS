@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "telemetryId": "a6c11b11-670d-4d2f-92d2-9ac81d4a7201",
+  "snapshotId": "e31964d1-8fbd-40a1-863d-30be2ee77284",
+  "capturedAtUtc": "2026-11-05T12:00:00Z",
+  "appVersion": "fork-build-example",
+  "syncIntervalSeconds": 300,
+  "simulator": false,
+  "position": null,
+  "implement": {
+    "name": "Talerzowka",
+    "widthMeters": 3.0
+  },
+  "fieldStatus": "CLOSED",
+  "field": null,
+  "coverage": null
+}

@@ -40,9 +40,16 @@ namespace AgOpenGPS
         // Open a field with required precheck and per-file loaders.
         public async Task FileOpenField(string openType)
         {
+            BeginFarmFieldTransition();
+            try { await OpenFarmFieldFiles(openType); }
+            finally { EndFarmFieldTransition(); }
+        }
+
+        private async Task OpenFarmFieldFiles(string openType)
+        {
             if (isJobStarted)
             {
-                _ = FileSaveEverythingBeforeClosingField();
+                await FileSaveEverythingBeforeClosingField();
             }
 
             // Resolve Field.txt path
@@ -182,6 +189,7 @@ namespace AgOpenGPS
             SetButtons();
             SetZoom();
             oglZoom.Refresh();
+            CompleteFarmFieldOpen();
         }
 
         // Save HeadLines.

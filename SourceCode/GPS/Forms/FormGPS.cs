@@ -661,6 +661,7 @@ namespace AgOpenGPS
             }
             //Init AgShareClient
             agShareClient = new AgShareClient(Settings.Default.AgShareServer, Settings.Default.AgShareApiKey);
+            StartFarmSync();
         }
 
         #region Shutdown Handling
@@ -703,6 +704,8 @@ namespace AgOpenGPS
                 isShuttingDown = false;
                 return;
             }
+
+            StopFarmSync();
 
             // Turn off auto sections if active
             if (isJobStarted && autoBtnState == btnStates.Auto)
@@ -1111,6 +1114,8 @@ namespace AgOpenGPS
         //request a new job
         public void JobNew()
         {
+            _farmFieldReadiness.Clear();
+            InvalidateFarmFieldCapture();
             //SendSteerSettingsOutAutoSteerPort();
 
             AppModel.Fields.OpenField();
@@ -1220,6 +1225,8 @@ namespace AgOpenGPS
         //close the current job
         public void JobClose()
         {
+            _farmFieldReadiness.Clear();
+            InvalidateFarmFieldCapture();
             recPath.resumeState = 0;
             btnResumePath.Image = Properties.Resources.pathResumeStart;
             recPath.currentPositonIndex = 0;
